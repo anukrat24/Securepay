@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/loginstyle.css}">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-left">
+        <h2>Login</h2>
+        <p>How do I get started?</p>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="input-group password-wrapper">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                <span class="toggle-password" onclick="togglePassword()">👁️</span>
+            </div>
+
+            <!-- Hidden OTP Input -->
+            <div class="input-group otp-group" style="display: none;">
+                <label for="otp">OTP</label>
+                <input type="text" name="otp" placeholder="Enter OTP">
+            </div>
+
+            <button type="submit" class="login-button">Login Now</button>
+
+            <div class="register-link">
+                Not registered? <a href="/register-page">Create an account</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="login-right">
+        <img src="/css/images/online-registration-or-sign-up-login-for-account-on-smartphone-app-user-interface-with-secure-password-mobile-application-for-ui-web-banner-access-cartoon-people-illustration-vector-removebg-preview.png"
+             alt="Login Illustration" />
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById("loginForm");
+    const otpGroup = document.querySelector(".otp-group");
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = form.email.value;
+        const password = form.password.value;
+        const otp = form.otp?.value || "";
+
+        const response = await fetch("/api/users/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, otp })
+        });
+
+        const result = await response.json();
+
+        if (result.message.includes("OTP sent")) {
+            alert("OTP sent to your email.");
+            otpGroup.style.display = "block"; // Show OTP field
+        } else if (result.message.includes("Login successful")) {
+            alert("Login successful!");
+            window.location.href = "/dashboard";
+        } else {
+            alert(result.message || "Login failed");
+        }
+    });
+
+    function togglePassword() {
+        const passwordInput = document.getElementById("password");
+        const toggleIcon = document.querySelector(".toggle-password");
+        const isPassword = passwordInput.type === "password";
+
+        passwordInput.type = isPassword ? "text" : "password";
+        toggleIcon.textContent = isPassword ? "🙈" : "👁️";
+    }
+</script>
+</body>
+</html>

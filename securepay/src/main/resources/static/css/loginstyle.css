@@ -1,0 +1,127 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background-color: #ede9f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    display: flex;
+    width: 80%;
+    max-width: 1100px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.login-left {
+    flex: 1;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #ffffff;
+}
+
+.login-left h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.login-left p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    padding-right: 40px; /* For eye icon */
+}
+
+.login-button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(to right, #7c5fff, #4e47e3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.social-login {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.social-login p {
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.login-right {
+    flex: 1;
+    background: linear-gradient(to bottom right, #7c5fff, #4e47e3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.login-right img {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 20px;
+}
+
+/* Password eye icon styles */
+.toggle-password {
+    position: absolute;
+    top: 37px;
+    right: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #888;
+    user-select: none;
+}
+.register-link {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.register-link a {
+    color: #4e47e3;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}

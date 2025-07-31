@@ -1,0 +1,61 @@
+<!DOCTYPE html> <!--This declares the document type as HTML5. It ensures the browser renders the page in standards mode.-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <!-- Left Image Panel -->
+    <div class="left-panel">
+        <img th:src="@{/css/images/kGCICdO-removebg-preview.png}" alt="Side Illustration">
+    </div><!--stands for division in HTML.-->
+
+    <!-- Right Form Panel -->
+    <div class="right-panel">
+        <div class="card">
+            <!-- Logo in center top of form -->
+            <div class="logo-container">
+                <img th:src="@{https://cdn-icons-png.flaticon.com/512/9187/9187604.png}" alt="Logo">
+            </div>
+
+            <h2>Register</h2>
+            <form id="registerForm">
+                <input type="text" name="name" placeholder="Full Name" required />
+                <input type="email" name="email" placeholder="Email Address" required />
+                <input type="password" name="password" placeholder="Password" required />
+                <div class="actions">
+                    <button type="submit">Register</button>
+                </div>
+            </form>
+            <div class="footer">
+                Already have an account? <a th:href="@{/login-page}">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("registerForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const response = await fetch("/api/users/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },//Sets the HTTP headers and tells the server that the body of the request is JSON data.
+            body: JSON.stringify({// converts a JavaScript object into a JSON-formatted string.
+                name: form.name.value,
+                email: form.email.value,
+                password: form.password.value
+            })
+        });
+        if (response.ok) {
+            alert("Registration successful!");
+            window.location.href = "/login-page";
+        } else {
+            alert("Failed to register.");
+        }
+    });
+</script>
+</body>
+</html>

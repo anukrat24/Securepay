@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SecurePay Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <h2>SecurePay</h2>
+        <p th:text="${userEmail}">user@example.com</p>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="showSection('makeTransaction')">Make Transaction</a></li>
+                <li><a href="#" onclick="showSection('transactionHistory')">Show Transactions</a></li>
+                <li><a href="/login-page">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="dashboard-content">
+        <h1>Welcome, <span th:text="${userName}">User</span>!</h1>
+
+        <!-- Create Transaction Form -->
+        <section id="makeTransaction" class="card">
+            <h2>Create New Transaction</h2>
+            <form id="createTransactionForm">
+                <input type="number" id="amount" placeholder="Amount" required>
+                <input type="text" id="description" placeholder="Description" required>
+                <button type="submit">Submit</button>
+            </form>
+            <p id="create-status" class="error-message"></p>
+        </section>
+
+        <!-- Transaction History -->
+        <section class="card" id="transactionHistory" style="display: none;">
+            <h3>Your Transactions</h3>
+            <form id="filterForm">
+                <label>
+                    Start Date:
+                    <input type="date" id="start">
+                </label>
+                <label>
+                    End Date:
+                    <input type="date" id="end">
+                </label>
+                <button type="submit">Apply Filters</button>
+            </form>
+
+            <div class="transaction-list">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                        <th>Timestamp</th>
+                        <th>Flagged</th>
+                        <th>Reason</th>
+                    </tr>
+                    </thead>
+                    <tbody id="transactionTableBody">
+                    <!-- Rows inserted dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    function showSection(id) {
+        document.getElementById('makeTransaction').style.display = id === 'makeTransaction' ? 'block' : 'none';
+        document.getElementById('transactionHistory').style.display = id === 'transactionHistory' ? 'block' : 'none';
+    }
+
+    async function fetchTransactions() {
+        const start = document.getElementById('start').value;
+        const end = document.getElementById('end').value;
+
+        let url = '/api/transactions';
+        const params = [];
+        if (start) params.push(`start=${start}`);
+        if (end) params.push(`end=${end}`);
+        if (params.length) url += '?' + params.join('&');
+
+        const res = await fetch(url);
+        const data = await res.json();
+        renderTransactions(data);
+    }
+
+    function renderTransactions(data) {
+        const table = document.getElementById('transactionTableBody');
+        table.innerHTML = '';
+
+        data.forEach(txn => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${txn.id}</td>
+                <td>${txn.amount}</td>
+                <td>${txn.description}</td>
+                <td>${new Date(txn.timestamp).toLocaleString()}</td>
+                <td>${txn.flagged ? 'Yes' : 'No'}</td>
+                <td>${txn.fraudReason || '-'}</td>
+            `;
+            table.appendChild(row);
+        });
+    }
+
+    document.getElementById('createTransactionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const amount = document.getElementById('amount').value;
+        const description = document.getElementById('description').value;
+
+        const res = await fetch('/api/transaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount, description })
+        });
+
+        if (res.ok) {
+            document.getElementById('create-status').innerText = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('description').value = '';
+            fetchTransactions();
+        } else {
+            document.getElementById('create-status').innerText = 'Failed to create transaction';
+        }
+    });
+
+    document.getElementById('filterForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetchTransactions();
+    });
+
+    // Load user transactions initially
+    fetchTransactions();
+</script>
+</body>
+</html>

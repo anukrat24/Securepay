@@ -1,0 +1,119 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f9;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 240px;
+    background-color: #11426e;
+    color: white;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar h2 {
+    font-size: 24px;
+    margin-bottom: 1rem;
+}
+
+.sidebar p {
+    font-size: 14px;
+    margin-bottom: 2rem;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: block;
+    padding: 10px;
+    transition: background 0.3s ease;
+}
+
+.sidebar ul li a:hover {
+    background-color: #415f7e;
+    border-radius: 6px;
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 3rem;
+    background-color: white;
+    border-radius: 12px;
+    margin: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+h1 {
+    font-size: 26px;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+.card h2, .card h3 {
+    margin-top: 0;
+}
+
+input, select, button {
+    padding: 10px;
+    margin-right: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #2d5c9a;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #34495e;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+table th, table td {
+    text-align: left;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+}
