@@ -1,61 +1,300 @@
-<!DOCTYPE html> <!--This declares the document type as HTML5. It ensures the browser renders the page in standards mode.-->
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
+
     <meta charset="UTF-8">
+
     <title>Register</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 </head>
+
+
+
 <body>
-<div class="container">
-    <!-- Left Image Panel -->
-    <div class="left-panel">
-        <img th:src="@{/css/images/kGCICdO-removebg-preview.png}" alt="Side Illustration">
-    </div><!--stands for division in HTML.-->
 
-    <!-- Right Form Panel -->
-    <div class="right-panel">
-        <div class="card">
-            <!-- Logo in center top of form -->
-            <div class="logo-container">
-                <img th:src="@{https://cdn-icons-png.flaticon.com/512/9187/9187604.png}" alt="Logo">
-            </div>
 
-            <h2>Register</h2>
-            <form id="registerForm">
-                <input type="text" name="name" placeholder="Full Name" required />
-                <input type="email" name="email" placeholder="Email Address" required />
-                <input type="password" name="password" placeholder="Password" required />
-                <div class="actions">
-                    <button type="submit">Register</button>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+
+
+<div class="login-card">
+
+
+
+    <!-- LEFT SIDE DESIGN -->
+
+    <div class="login-right">
+
+        <div class="right-inner">
+
+
+            <div class="illustration-wrap">
+
+                <img th:src="@{/css/images/kGCICdO-removebg-preview.png}">
+
+                <div class="orbit">
+                    <div class="orbit-dot"></div>
                 </div>
-            </form>
-            <div class="footer">
-                Already have an account? <a th:href="@{/login-page}">Login</a>
+
+                <div class="orbit-2">
+                    <div class="orbit-dot-2"></div>
+                </div>
+
+
             </div>
+
+
+
+            <p class="right-tagline">
+
+                Start your
+                <br>
+
+                <em>
+                    journey today.
+                </em>
+
+            </p>
+
+
+            <p class="right-sub">
+
+                Join thousands who trust us every day.
+
+            </p>
+
+
+
+            <div class="pills">
+
+<span class="pill">
+🚀 Free to join
+</span>
+
+                <span class="pill">
+🔐 Secure
+</span>
+
+                <span class="pill">
+⚡ Instant setup
+</span>
+
+            </div>
+
+
+
         </div>
+
     </div>
+
+
+
+
+
+    <!-- RIGHT SIDE FORM -->
+
+    <div class="login-left">
+
+
+        <div class="brand">
+
+            <div class="brand-dot"></div>
+
+            <span class="brand-name">
+
+SecuraPay
+
+</span>
+
+        </div>
+
+
+
+        <h1 class="heading">
+
+            Create your
+            <br>
+
+            <em>
+
+                account.
+
+            </em>
+
+        </h1>
+
+
+
+        <p class="subheading">
+
+            Fill details to get started.
+
+        </p>
+
+
+
+
+
+        <form id="registerForm">
+
+
+            <div class="input-group">
+
+                <label>
+                    Full Name
+                </label>
+
+                <input type="text"
+                       name="name"
+                       placeholder="John Doe"
+                       required>
+
+            </div>
+
+
+
+
+            <div class="input-group">
+
+                <label>
+                    Email Address
+                </label>
+
+                <input type="email"
+                       name="email"
+                       placeholder="you@example.com"
+                       required>
+
+            </div>
+
+
+
+
+            <div class="input-group">
+
+                <label>
+                    Password
+                </label>
+
+                <input type="password"
+                       name="password"
+                       id="password"
+                       placeholder="Strong password"
+                       required>
+
+            </div>
+
+
+
+
+            <button type="submit"
+                    class="login-button">
+
+                Create Account
+
+            </button>
+
+
+
+        </form>
+
+
+
+        <div class="register-link">
+
+            Already have account?
+
+            <a th:href="@{/login-page}">
+
+                Sign in →
+
+            </a>
+
+        </div>
+
+
+
+    </div>
+
+
 </div>
 
+
+
+
 <script>
-    document.getElementById("registerForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const form = e.target;
-        const response = await fetch("/api/users/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },//Sets the HTTP headers and tells the server that the body of the request is JSON data.
-            body: JSON.stringify({// converts a JavaScript object into a JSON-formatted string.
-                name: form.name.value,
-                email: form.email.value,
-                password: form.password.value
-            })
-        });
-        if (response.ok) {
-            alert("Registration successful!");
-            window.location.href = "/login-page";
-        } else {
-            alert("Failed to register.");
-        }
-    });
+
+    document
+        .getElementById("registerForm")
+        .addEventListener(
+
+            "submit",
+
+            async function(e){
+
+                e.preventDefault();
+
+                const form=e.target;
+
+                const response=
+                    await fetch(
+
+                        "/api/users/register",
+
+                        {
+
+                            method:"POST",
+
+                            headers:{
+                                "Content-Type":"application/json"
+                            },
+
+                            body:JSON.stringify({
+
+                                name:form.name.value,
+                                email:form.email.value,
+                                password:form.password.value
+
+                            })
+
+                        }
+
+                    );
+
+
+                if(response.ok){
+
+                    alert("Registered");
+
+                    window.location.href="/login-page";
+
+                }
+                else{
+
+                    alert("Error");
+
+                }
+
+            }
+
+        );
+
 </script>
+
+
+
 </body>
+
 </html>

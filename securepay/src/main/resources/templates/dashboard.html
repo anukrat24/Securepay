@@ -1,141 +1,320 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>SecurePay Dashboard</title>
+    <title>SecurePay | Dashboard</title>
+
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 </head>
-<body>
-<div class="container">
-    <aside class="sidebar">
-        <h2>SecurePay</h2>
-        <p th:text="${userEmail}">user@example.com</p>
-        <nav>
-            <ul>
-                <li><a href="#" onclick="showSection('makeTransaction')">Make Transaction</a></li>
-                <li><a href="#" onclick="showSection('transactionHistory')">Show Transactions</a></li>
-                <li><a href="/login-page">Logout</a></li>
-            </ul>
-        </nav>
+    <body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="shell">
+
+    <!-- ─── Sidebar ─── -->
+    <aside>
+    <div class="sidebar-brand">
+    <div class="brand-dot"></div>
+    <span class="brand-name">SecurePay</span>
+    </div>
+
+    <!-- User pill -->
+    <div class="user-card">
+    <div class="user-avatar" id="sidebar-avatar">U</div>
+    <div class="user-info">
+    <div class="user-name"  th:text="${userName}"  id="sidebar-name">User</div>
+    <div class="user-email" th:text="${userEmail}" id="sidebar-email">user@example.com</div>
+    </div>
+    </div>
+
+    <p class="sidebar-label">Menu</p>
+    <nav>
+    <button class="nav-item active" id="nav-make" onclick="showSection('makeTransaction')">
+    <span class="nav-icon">✦</span> Make Transaction
+    </button>
+    <button class="nav-item" id="nav-history" onclick="showSection('transactionHistory')">
+    <span class="nav-icon">◈</span> Transaction History
+    </button>
+    </nav>
+
+    <div class="sidebar-footer">
+    <a class="logout-btn" href="/login-page">
+    <span>⎋</span> Logout
+    </a>
+    </div>
     </aside>
 
-    <main class="dashboard-content">
-        <h1>Welcome, <span th:text="${userName}">User</span>!</h1>
+    <!-- ─── Main ─── -->
+    <main>
 
-        <!-- Create Transaction Form -->
-        <section id="makeTransaction" class="card">
-            <h2>Create New Transaction</h2>
-            <form id="createTransactionForm">
-                <input type="number" id="amount" placeholder="Amount" required>
-                <input type="text" id="description" placeholder="Description" required>
-                <button type="submit">Submit</button>
-            </form>
-            <p id="create-status" class="error-message"></p>
-        </section>
+    <!-- Top bar -->
+    <div class="topbar">
+    <div>
+    <h1 class="page-title">Welcome, <em th:text="${userName}" id="welcome-name">User</em></h1>
+    </div>
+    <div class="topbar-date" id="current-date"></div>
+    </div>
 
-        <!-- Transaction History -->
-        <section class="card" id="transactionHistory" style="display: none;">
-            <h3>Your Transactions</h3>
-            <form id="filterForm">
-                <label>
-                    Start Date:
-                    <input type="date" id="start">
-                </label>
-                <label>
-                    End Date:
-                    <input type="date" id="end">
-                </label>
-                <button type="submit">Apply Filters</button>
-            </form>
+    <!-- Stats -->
+    <div class="stats">
+    <div class="stat-card">
+    <div class="stat-label">Total Transactions</div>
+    <div class="stat-value gold" id="stat-total">—</div>
+    </div>
+    <div class="stat-card">
+    <div class="stat-label">Total Spent</div>
+    <div class="stat-value gold" id="stat-volume">—</div>
+    </div>
+    <div class="stat-card">
+    <div class="stat-label">Flagged</div>
+    <div class="stat-value red" id="stat-flagged">—</div>
+    </div>
+    <div class="stat-card">
+    <div class="stat-label">Clean</div>
+    <div class="stat-value green" id="stat-clean">—</div>
+    </div>
+    </div>
 
-            <div class="transaction-list">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Amount</th>
-                        <th>Description</th>
-                        <th>Timestamp</th>
-                        <th>Flagged</th>
-                        <th>Reason</th>
-                    </tr>
-                    </thead>
-                    <tbody id="transactionTableBody">
-                    <!-- Rows inserted dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    <!-- ─── Make Transaction ─── -->
+    <section id="makeTransaction" class="active">
+    <h2 class="section-heading">New <em>Transaction</em></h2>
+    <div class="glass-card">
+    <form class="tx-form" id="createTransactionForm">
+
+    <div class="form-row">
+    <div class="input-group">
+    <label for="amount">Amount</label>
+    <div class="input-wrap">
+    <span class="input-prefix">₹</span>
+    <input type="number" id="amount" placeholder="0.00" min="1" step="0.01" required>
+    </div>
+    </div>
+    <div class="input-group">
+    <label for="description">Description</label>
+    <input type="text" id="description" placeholder="e.g. Rent, Invoice #123…" required>
+    </div>
+    </div>
+
+    <button type="submit" class="submit-btn">Send Payment</button>
+
+    <div class="status-msg" id="create-status"></div>
+    </form>
+    </div>
+    </section>
+
+    <!-- ─── Transaction History ─── -->
+    <section id="transactionHistory">
+    <h2 class="section-heading">Transaction <em>History</em></h2>
+    <div class="glass-card">
+
+    <!-- Filter row -->
+    <form class="filter-row" id="filterForm">
+    <div class="filter-group">
+    <label for="start">Start Date</label>
+    <input type="date" id="start">
+    </div>
+    <div class="filter-group">
+    <label for="end">End Date</label>
+    <input type="date" id="end">
+    </div>
+    <button type="submit" class="filter-btn">Apply Filters</button>
+    <button type="button" class="filter-btn" id="clear-filter" style="background:transparent;color:var(--muted);border-color:var(--border)">Clear</button>
+    </form>
+
+    <div class="table-wrap">
+    <table>
+    <thead>
+    <tr>
+    <th>ID</th>
+    <th>Amount</th>
+    <th>Description</th>
+    <th>Timestamp</th>
+    <th>Status</th>
+    <th>Reason</th>
+    </tr>
+    </thead>
+    <tbody id="transactionTableBody">
+    <tr>
+    <td colspan="6" style="padding:50px;text-align:center;color:var(--muted)">
+    Loading transactions…
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    </div>
+
+    </div>
+    </section>
+
     </main>
-</div>
+    </div>
 
-<script>
-    function showSection(id) {
-        document.getElementById('makeTransaction').style.display = id === 'makeTransaction' ? 'block' : 'none';
-        document.getElementById('transactionHistory').style.display = id === 'transactionHistory' ? 'block' : 'none';
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /* ── Date ── */
+    document.getElementById('current-date').textContent =
+    new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    /* ── Avatar initial ── */
+    const nameEl = document.getElementById('sidebar-name');
+    if (nameEl) {
+        const initial = (nameEl.textContent || 'U')[0].toUpperCase();
+    document.getElementById('sidebar-avatar').textContent = initial;
     }
 
+    /* ── Toast ── */
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+    t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    /* ── Section switcher ── */
+    function showSection(id) {
+    ['makeTransaction', 'transactionHistory'].forEach(s => {
+    document.getElementById(s).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+
+    document.getElementById('nav-make').classList.toggle('active',    id === 'makeTransaction');
+    document.getElementById('nav-history').classList.toggle('active', id === 'transactionHistory');
+
+        if (id === 'transactionHistory') fetchTransactions();
+    }
+
+    /* ── Stats ── */
+    let allTxns = [];
+
+    function updateStats(txns) {
+    document.getElementById('stat-total').textContent   = txns.length;
+        const flagged = txns.filter(t => t.flagged).length;
+    document.getElementById('stat-flagged').textContent = flagged;
+    document.getElementById('stat-clean').textContent   = txns.length - flagged;
+        const vol = txns.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+    document.getElementById('stat-volume').textContent  = '₹' + vol.toLocaleString('en-IN');
+    }
+
+    /* ── Render table ── */
+    function renderTransactions(data) {
+        const tbody = document.getElementById('transactionTableBody');
+    tbody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+    tbody.innerHTML = `
+    <tr>
+    <td colspan="6">
+    <div class="empty-state">
+    <div class="empty-icon">◈</div>
+    <p>No transactions found.</p>
+    </div>
+    </td>
+    </tr>`;
+        return;
+    }
+
+    data.forEach((txn, i) => {
+        const row = document.createElement('tr');
+    row.style.animationDelay = `${i * 0.04}s`;
+
+        const badge = txn.flagged
+        ? `<span class="badge badge-flagged">⚑ Flagged</span>`
+        : `<span class="badge badge-clean">✓ Clear</span>`;
+
+    row.innerHTML = `
+    <td class="id-cell">#${txn.id}</td>
+    <td class="amount-cell">₹${Number(txn.amount).toLocaleString('en-IN')}</td>
+    <td>${txn.description ?? '—'}</td>
+    <td style="font-size:13px;color:var(--muted)">${new Date(txn.timestamp).toLocaleString('en-IN')}</td>
+    <td>${badge}</td>
+    <td style="font-size:13px;color:var(--muted)">${txn.fraudReason || '—'}</td>
+    `;
+    tbody.appendChild(row);
+    });
+    }
+
+    /* ── Fetch ── */
     async function fetchTransactions() {
         const start = document.getElementById('start').value;
-        const end = document.getElementById('end').value;
+        const end   = document.getElementById('end').value;
 
         let url = '/api/transactions';
         const params = [];
         if (start) params.push(`start=${start}`);
-        if (end) params.push(`end=${end}`);
+        if (end)   params.push(`end=${end}`);
         if (params.length) url += '?' + params.join('&');
 
-        const res = await fetch(url);
+        const tbody = document.getElementById('transactionTableBody');
+    tbody.innerHTML = `
+    <tr>${Array(6).fill(`<td><div class="skeleton" style="width:80%">&nbsp;</div></td>`).join('')}</tr>
+    <tr>${Array(6).fill(`<td><div class="skeleton" style="width:60%">&nbsp;</div></td>`).join('')}</tr>
+    <tr>${Array(6).fill(`<td><div class="skeleton" style="width:70%">&nbsp;</div></td>`).join('')}</tr>`;
+
+    try {
+        const res  = await fetch(url);
         const data = await res.json();
-        renderTransactions(data);
+        allTxns = data || [];
+    updateStats(allTxns);
+    renderTransactions(allTxns);
+    } catch (err) {
+    showToast('Failed to load transactions.', 'error');
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">◈</div><p>Could not load data.</p></div></td></tr>`;
+    }
     }
 
-    function renderTransactions(data) {
-        const table = document.getElementById('transactionTableBody');
-        table.innerHTML = '';
-
-        data.forEach(txn => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${txn.id}</td>
-                <td>${txn.amount}</td>
-                <td>${txn.description}</td>
-                <td>${new Date(txn.timestamp).toLocaleString()}</td>
-                <td>${txn.flagged ? 'Yes' : 'No'}</td>
-                <td>${txn.fraudReason || '-'}</td>
-            `;
-            table.appendChild(row);
-        });
-    }
-
+    /* ── Create ── */
     document.getElementById('createTransactionForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const amount = document.getElementById('amount').value;
-        const description = document.getElementById('description').value;
+                                                                                               e.preventDefault();
+                                                                                               const amount      = document.getElementById('amount').value;
+                                                                                               const description = document.getElementById('description').value;
+                                                                                               const statusEl    = document.getElementById('create-status');
 
-        const res = await fetch('/api/transaction', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount, description })
-        });
+                                                                                               statusEl.className = 'status-msg';
 
-        if (res.ok) {
-            document.getElementById('create-status').innerText = '';
-            document.getElementById('amount').value = '';
-            document.getElementById('description').value = '';
-            fetchTransactions();
-        } else {
-            document.getElementById('create-status').innerText = 'Failed to create transaction';
-        }
-    });
+                                                                                               try {
+                                                                                                   const res = await fetch('/api/transaction', {
+                                                                                                   method: 'POST',
+                                                                                                   headers: { 'Content-Type': 'application/json' },
+                                                                                               body: JSON.stringify({ amount, description })
+                                                                                               });
 
-    document.getElementById('filterForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        fetchTransactions();
-    });
+                                                                                               if (res.ok) {
+                                                                                               document.getElementById('amount').value      = '';
+                                                                                               document.getElementById('description').value = '';
+                                                                                               showToast('Transaction submitted successfully!');
+                                                                                               fetchTransactions();
+                                                                                               } else {
+                                                                                               statusEl.textContent = '✕  Transaction failed. Please try again.';
+                                                                                               statusEl.className = 'status-msg error';
+                                                                                               showToast('Failed to create transaction.', 'error');
+                                                                                               }
+                                                                                               } catch {
+                                                                                                     statusEl.textContent = '✕  Network error. Please check your connection.';
+                                                                                                     statusEl.className = 'status-msg error';
+                                                                                                 }
+                                                                                           });
 
-    // Load user transactions initially
+    /* ── Filter ── */
+    document.getElementById('filterForm').addEventListener('submit', (e) => {
+                                                                              e.preventDefault(); fetchTransactions();
+                                                                          });
+
+    document.getElementById('clear-filter').addEventListener('click', () => {
+                                                                              document.getElementById('start').value = '';
+                                                                              document.getElementById('end').value   = '';
+                                                                          fetchTransactions();
+                                                                          });
+
+    /* ── Init ── */
     fetchTransactions();
-</script>
-</body>
-</html>
+    </script>
+    </body>
+    </html>

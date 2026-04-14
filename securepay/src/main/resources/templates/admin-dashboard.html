@@ -3,144 +3,292 @@
 <head>
     <meta charset="UTF-8" />
     <title>SecurePay | Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100">
 
-<div class="min-h-screen flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-blue-800 text-white p-6">
-        <h2 class="text-2xl font-bold mb-6">Admin Dashboard</h2>
-        <ul>
-            <li class="mb-4"><a href="#" class="hover:underline">All Transactions</a></li>
-            <li><a href="/logout" class="hover:underline">Logout</a></li>
-        </ul>
+    <!-- Correct CSS link -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="shell">
+
+    <!-- ─── Sidebar ─── -->
+    <aside>
+        <div class="sidebar-brand">
+            <div class="brand-dot"></div>
+            <span class="brand-name">Nexus</span>
+        </div>
+
+        <p class="sidebar-label">Navigation</p>
+        <nav>
+            <a class="nav-item active" href="#">
+                <span class="nav-icon">⬡</span> Transactions
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon">◈</span> Users
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon">◉</span> Reports
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon">◇</span> Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a class="logout-btn" href="/login-page">
+                <span>⎋</span> Logout
+            </a>
+        </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6">
-        <h1 class="text-3xl font-semibold mb-4">All User Transactions</h1>
+    <!-- ─── Main ─── -->
+    <main>
 
-        <div id="transaction-list" class="grid gap-4"></div>
+        <!-- Top bar -->
+        <div class="topbar">
+            <div>
+                <h1 class="page-title">All <em>Transactions</em></h1>
+            </div>
+            <div class="topbar-meta">
+                <div>Role: <strong>Admin</strong></div>
+                <div id="last-updated">Loading…</div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Transactions</div>
+                <div class="stat-value gold" id="stat-total">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Flagged</div>
+                <div class="stat-value red" id="stat-flagged">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Clean</div>
+                <div class="stat-value green" id="stat-clean">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Volume</div>
+                <div class="stat-value" id="stat-volume">—</div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search by email or description…">
+            </div>
+            <select class="filter-select" id="filter-select">
+                <option value="all">All transactions</option>
+                <option value="flagged">Flagged only</option>
+                <option value="clean">Clean only</option>
+            </select>
+            <button class="refresh-btn" id="refresh-btn" title="Refresh">↻</button>
+        </div>
+
+        <!-- Cards -->
+        <div id="transaction-list"></div>
+
     </main>
 </div>
 
-<!-- Admin JS -->
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const transactionList = document.getElementById('transaction-list');
+    const transactionList = document.getElementById('transaction-list');
+    const searchInput     = document.getElementById('search-input');
+    const filterSelect    = document.getElementById('filter-select');
+    const refreshBtn      = document.getElementById('refresh-btn');
+    let allTransactions   = [];
 
-        function fetchTransactions() {
-            fetch('/api/admin/transactions', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include'
-            })
-                .then(res => {
-                    if (res.status === 403) {
-                        alert("You are not authorized to view this page.");
-                        return [];
-                    }
-                    return res.json();
-                })
-                .then(data => renderTransactions(data))
-                .catch(err => console.error("Fetch error:", err));
+    /* ── Toast ── */
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+        t.className   = `toast ${type} show`;
+        setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    /* ── Stats ── */
+    function updateStats(txs) {
+        document.getElementById('stat-total').textContent   = txs.length;
+        const flagged = txs.filter(t => t.flagged).length;
+        document.getElementById('stat-flagged').textContent = flagged;
+        document.getElementById('stat-clean').textContent   = txs.length - flagged;
+        const vol = txs.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+        document.getElementById('stat-volume').textContent  = '₹' + vol.toLocaleString('en-IN');
+        document.getElementById('last-updated').textContent =
+            'Updated ' + new Date().toLocaleTimeString();
+    }
+
+    /* ── Render ── */
+    function renderTransactions(txs) {
+        transactionList.innerHTML = '';
+
+        if (!txs || txs.length === 0) {
+            transactionList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">◈</div>
+                    <p>No transactions found.</p>
+                </div>`;
+            return;
         }
 
-        function renderTransactions(transactions) {
-            transactionList.innerHTML = ''; // clear list
-            transactions.forEach(tx => {
-                const card = document.createElement('div');
-                card.className = 'bg-white p-4 shadow rounded-lg';
+        txs.forEach((tx, i) => {
+            const initials = (tx.userEmail || '?')[0].toUpperCase();
+            const flaggedBadge = tx.flagged
+                ? `<span class="badge badge-flagged">⚑ Flagged</span>`
+                : `<span class="badge badge-clean">✓ Clean</span>`;
 
-                card.innerHTML = `
-                    <p><strong>User:</strong> ${tx.userEmail}</p>
-                    <p><strong>Amount:</strong> ₹${tx.amount}</p>
-                    <p><strong>Description:</strong> ${tx.description}</p>
-                    <p><strong>Date:</strong> ${tx.date}</p>
-                    <p><strong>Flagged:</strong> ${tx.flagged ? 'Yes' : 'No'}</p>
-                    <div class="mt-2 flex flex-wrap gap-2">
-                        <input type="text" placeholder="Flag reason" class="flag-reason border p-1 rounded w-2/3" />
-                        <button class="flag-btn bg-red-600 text-white px-3 py-1 rounded" data-id="${tx.id}">
-                            Flag
-                        </button>
-                        <button class="delete-btn bg-gray-700 text-white px-3 py-1 rounded ml-auto" data-id="${tx.id}">
-                            Delete
-                        </button>
+            const card = document.createElement('div');
+            card.className = `tx-card${tx.flagged ? ' is-flagged' : ''}`;
+            card.style.animationDelay = `${i * 0.05}s`;
+
+            card.innerHTML = `
+                <div class="tx-header">
+                    <div class="tx-user">
+                        <div class="tx-avatar">${initials}</div>
+                        <div>
+                            <div class="tx-email">${tx.userEmail ?? '—'}</div>
+                            <div class="tx-date">${tx.date ?? '—'}</div>
+                        </div>
                     </div>
-                `;
+                    <div class="tx-amount">₹${Number(tx.amount ?? 0).toLocaleString('en-IN')}</div>
+                </div>
 
-                transactionList.appendChild(card);
+                <div class="tx-body">
+                    <div class="tx-field">
+                        <div class="tx-field-label">Description</div>
+                        <div class="tx-field-value">${tx.description ?? '—'}</div>
+                    </div>
+                    <div class="tx-field">
+                        <div class="tx-field-label">Status</div>
+                        <div class="tx-field-value">${flaggedBadge}</div>
+                    </div>
+                    <div class="tx-field">
+                        <div class="tx-field-label">Transaction ID</div>
+                        <div class="tx-field-value" style="font-size:12px;color:var(--muted)">#${tx.id ?? '—'}</div>
+                    </div>
+                </div>
+
+                <div class="tx-actions">
+                    <input type="text" class="flag-input" placeholder="Flag reason…">
+                    <button class="action-btn btn-flag flag-btn" data-id="${tx.id}">⚑ Flag</button>
+                    <button class="action-btn btn-delete delete-btn" data-id="${tx.id}">✕ Delete</button>
+                </div>
+            `;
+
+            transactionList.appendChild(card);
+        });
+
+        /* Flag buttons */
+        document.querySelectorAll('.flag-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const reason = this.previousElementSibling.value.trim();
+                if (!reason) { showToast('Please enter a flag reason.', 'error'); return; }
+                flagTransaction(this.dataset.id, reason);
             });
+        });
 
-            // Flag buttons
-            document.querySelectorAll('.flag-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const txId = this.dataset.id;
-                    const reason = this.previousElementSibling.value.trim();
-
-                    if (!reason) {
-                        alert("Please enter a reason.");
-                        return;
-                    }
-
-                    flagTransaction(txId, reason);
-                });
+        /* Delete buttons */
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (confirm('Delete this transaction permanently?'))
+                    deleteTransaction(this.dataset.id);
             });
+        });
+    }
 
-            // Delete buttons
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const txId = this.dataset.id;
-                    if (confirm("Are you sure you want to delete this transaction?")) {
-                        deleteTransaction(txId);
-                    }
-                });
-            });
-        }
+    /* ── Filter & search ── */
+    function applyFilters() {
+        const q      = searchInput.value.toLowerCase();
+        const filter = filterSelect.value;
 
-        function flagTransaction(id, reason) {
-            fetch('/api/admin/flag', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    transactionId: id,
-                    reason: reason
-                })
+        let filtered = allTransactions.filter(tx => {
+            const matchQ = !q ||
+                (tx.userEmail  ?? '').toLowerCase().includes(q) ||
+                (tx.description ?? '').toLowerCase().includes(q);
+            const matchF = filter === 'all' ||
+                (filter === 'flagged' && tx.flagged) ||
+                (filter === 'clean'   && !tx.flagged);
+            return matchQ && matchF;
+        });
+
+        renderTransactions(filtered);
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    filterSelect.addEventListener('change', applyFilters);
+
+    /* ── Fetch ── */
+    function fetchTransactions() {
+        transactionList.innerHTML = `
+            <div style="display:grid;gap:14px;">
+                ${Array(3).fill(`
+                    <div class="tx-card" style="opacity:.5">
+                        <div class="skeleton" style="width:40%;margin-bottom:12px"></div>
+                        <div class="skeleton" style="width:70%;margin-bottom:8px"></div>
+                        <div class="skeleton" style="width:55%"></div>
+                    </div>`).join('')}
+            </div>`;
+
+        fetch('/api/admin/transactions', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        })
+            .then(res => {
+                if (res.status === 403) { showToast('Not authorized.', 'error'); return []; }
+                return res.json();
             })
-                .then(res => {
-                    if (res.ok) {
-                        alert("Transaction flagged successfully.");
-                        fetchTransactions();
-                    } else {
-                        alert("Error flagging transaction.");
-                    }
-                });
-        }
-
-        function deleteTransaction(id) {
-            fetch('/api/admin/transaction/' + id, {
-                method: 'DELETE',
-                credentials: 'include'
+            .then(data => {
+                allTransactions = data || [];
+                updateStats(allTransactions);
+                applyFilters();
             })
-                .then(res => {
-                    if (res.ok) {
-                        alert("Transaction deleted.");
-                        fetchTransactions();
-                    } else {
-                        alert("Error deleting transaction.");
-                    }
-                });
-        }
+            .catch(err => {
+                console.error(err);
+                showToast('Failed to load transactions.', 'error');
+                transactionList.innerHTML = `<div class="empty-state"><div class="empty-icon">◈</div><p>Could not load data.</p></div>`;
+            });
+    }
 
-        // Load data initially
-        fetchTransactions();
-    });
+    function flagTransaction(id, reason) {
+        fetch('/api/admin/flag', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ transactionId: id, reason })
+        })
+            .then(res => {
+                if (res.ok) { showToast('Transaction flagged.'); fetchTransactions(); }
+                else showToast('Error flagging transaction.', 'error');
+            });
+    }
+
+    function deleteTransaction(id) {
+        fetch('/api/admin/transaction/' + id, { method: 'DELETE', credentials: 'include' })
+            .then(res => {
+                if (res.ok) { showToast('Transaction deleted.'); fetchTransactions(); }
+                else showToast('Error deleting transaction.', 'error');
+            });
+    }
+
+    refreshBtn.addEventListener('click', fetchTransactions);
+
+    document.addEventListener('DOMContentLoaded', fetchTransactions);
 </script>
 </body>
 </html>
