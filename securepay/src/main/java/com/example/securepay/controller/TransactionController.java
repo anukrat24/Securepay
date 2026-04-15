@@ -30,7 +30,8 @@ public class TransactionController {
         return transactionService.createTransaction(
                 userEmail,
                 request.getAmount(),
-                request.getDescription()
+                request.getDescription(),
+                request.getPayMode()
         );
     }
 

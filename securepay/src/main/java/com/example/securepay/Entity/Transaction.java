@@ -18,4 +18,7 @@ public class Transaction {
 
     private boolean flagged;
     private String fraudReason;
+    private String payMode;
+
+    private String bankName;
 }

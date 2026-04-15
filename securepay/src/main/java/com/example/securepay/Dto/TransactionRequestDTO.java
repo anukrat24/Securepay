@@ -6,4 +6,5 @@ import lombok.Data;
 public class TransactionRequestDTO {
     private Double amount;
     private String description;
+    private String payMode;
 }
