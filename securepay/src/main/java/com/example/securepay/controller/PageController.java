@@ -16,6 +16,10 @@ public class PageController {
 
     private final UserService userService;
     private final TransactionService transactionService;
+    @GetMapping("/")
+    public String home() {
+        return "login";
+    }
 
     @GetMapping({"/register-page", "/registerpage"})
     public String registerPage() {
