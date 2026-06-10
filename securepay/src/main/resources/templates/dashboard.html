@@ -387,9 +387,7 @@
                 body:JSON.stringify({
 
                     amount,
-
                     description,
-
                     payMode
 
                 })
@@ -404,7 +402,22 @@
 
                 document.getElementById('payMode').value='';
 
+                document.getElementById('create-status').textContent =
+                    '✓ Transaction successful';
+
+                document.getElementById('create-status').className =
+                    'status-msg success';
+
                 fetchTransactions();
+
+            }
+            else{
+
+                document.getElementById('create-status').textContent =
+                    '✕ Transaction failed';
+
+                document.getElementById('create-status').className =
+                    'status-msg error';
 
             }
 

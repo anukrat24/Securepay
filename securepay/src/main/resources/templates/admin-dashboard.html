@@ -1,16 +1,18 @@
 <!DOCTYPE html>
+
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <title>SecurePay | Admin Dashboard</title>
 
-    <!-- Correct CSS link -->
+    ```
     <link rel="stylesheet" th:href="@{/css/admin.css}">
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    ```
+
 </head>
 <body>
 
@@ -19,26 +21,22 @@
 
 <div class="shell">
 
+    ```
     <!-- ─── Sidebar ─── -->
     <aside>
         <div class="sidebar-brand">
             <div class="brand-dot"></div>
-            <span class="brand-name">Nexus</span>
+            <span class="brand-name">SecurePay</span>
         </div>
 
         <p class="sidebar-label">Navigation</p>
         <nav>
-            <a class="nav-item active" href="#">
+            <a id="nav-transactions" class="nav-item active" href="#" onclick="showTransactions()">
                 <span class="nav-icon">⬡</span> Transactions
             </a>
-            <a class="nav-item" href="#">
-                <span class="nav-icon">◈</span> Users
-            </a>
-            <a class="nav-item" href="#">
-                <span class="nav-icon">◉</span> Reports
-            </a>
-            <a class="nav-item" href="#">
-                <span class="nav-icon">◇</span> Settings
+
+            <a id="nav-users" class="nav-item" href="#" onclick="showUsers()">
+                <span class="nav-icon">👤</span> Users
             </a>
         </nav>
 
@@ -52,7 +50,6 @@
     <!-- ─── Main ─── -->
     <main>
 
-        <!-- Top bar -->
         <div class="topbar">
             <div>
                 <h1 class="page-title">All <em>Transactions</em></h1>
@@ -63,7 +60,6 @@
             </div>
         </div>
 
-        <!-- Stats -->
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-label">Total Transactions</div>
@@ -83,7 +79,6 @@
             </div>
         </div>
 
-        <!-- Toolbar -->
         <div class="toolbar">
             <div class="search-wrap">
                 <span class="search-icon">🔍</span>
@@ -97,13 +92,17 @@
             <button class="refresh-btn" id="refresh-btn" title="Refresh">↻</button>
         </div>
 
-        <!-- Cards -->
+        <!-- Existing -->
         <div id="transaction-list"></div>
 
+        <!-- ✅ ADDED USERS SECTION -->
+        <div id="user-list" style="display:none;"></div>
+
     </main>
+    ```
+
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -113,7 +112,26 @@
     const refreshBtn      = document.getElementById('refresh-btn');
     let allTransactions   = [];
 
-    /* ── Toast ── */
+    /* ✅ VIEW SWITCH */
+    function showTransactions() {
+        transactionList.style.display = 'block';
+        document.getElementById('user-list').style.display = 'none';
+
+        // ✅ switch active state
+        document.getElementById('nav-transactions').classList.add('active');
+        document.getElementById('nav-users').classList.remove('active');
+    }
+
+    function showUsers() {
+        transactionList.style.display = 'none';
+        document.getElementById('user-list').style.display = 'block';
+        renderUsers();
+
+        // ✅ switch active state
+        document.getElementById('nav-users').classList.add('active');
+        document.getElementById('nav-transactions').classList.remove('active');
+    }
+
     function showToast(msg, type = 'success') {
         const t = document.getElementById('toast');
         t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
@@ -121,7 +139,6 @@
         setTimeout(() => t.classList.remove('show'), 3200);
     }
 
-    /* ── Stats ── */
     function updateStats(txs) {
         document.getElementById('stat-total').textContent   = txs.length;
         const flagged = txs.filter(t => t.flagged).length;
@@ -133,16 +150,11 @@
             'Updated ' + new Date().toLocaleTimeString();
     }
 
-    /* ── Render ── */
     function renderTransactions(txs) {
         transactionList.innerHTML = '';
 
         if (!txs || txs.length === 0) {
-            transactionList.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">◈</div>
-                    <p>No transactions found.</p>
-                </div>`;
+            transactionList.innerHTML = `<div class="empty-state"><div class="empty-icon">◈</div><p>No transactions found.</p></div>`;
             return;
         }
 
@@ -193,7 +205,6 @@
             transactionList.appendChild(card);
         });
 
-        /* Flag buttons */
         document.querySelectorAll('.flag-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const reason = this.previousElementSibling.value.trim();
@@ -202,7 +213,6 @@
             });
         });
 
-        /* Delete buttons */
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 if (confirm('Delete this transaction permanently?'))
@@ -211,7 +221,60 @@
         });
     }
 
-    /* ── Filter & search ── */
+    /* ✅ USERS RENDER */
+    function renderUsers() {
+        const userList = document.getElementById('user-list');
+        userList.innerHTML = '';
+
+        if (!allTransactions.length) {
+            userList.innerHTML = `<p>No users found.</p>`;
+            return;
+        }
+
+        const userMap = {};
+
+        allTransactions.forEach(tx => {
+            const email = tx.userEmail || 'Unknown';
+
+            if (!userMap[email]) {
+                userMap[email] = { count: 0, totalAmount: 0 };
+            }
+
+            userMap[email].count++;
+            userMap[email].totalAmount += parseFloat(tx.amount) || 0;
+        });
+
+        Object.keys(userMap).forEach(email => {
+            const user = userMap[email];
+
+            const card = document.createElement('div');
+            card.className = 'tx-card';
+
+            card.innerHTML = `
+                <div class="tx-header">
+                    <div>
+                        <div class="tx-email">${email}</div>
+                        <div class="tx-date">User</div>
+                    </div>
+                    <div class="tx-amount">${user.count} Txns</div>
+                </div>
+
+                <div class="tx-body">
+                    <div class="tx-field">
+                        <div class="tx-field-label">Total Transactions</div>
+                        <div class="tx-field-value">${user.count}</div>
+                    </div>
+                    <div class="tx-field">
+                        <div class="tx-field-label">Total Amount</div>
+                        <div class="tx-field-value">₹${user.totalAmount.toLocaleString('en-IN')}</div>
+                    </div>
+                </div>
+            `;
+
+            userList.appendChild(card);
+        });
+    }
+
     function applyFilters() {
         const q      = searchInput.value.toLowerCase();
         const filter = filterSelect.value;
@@ -232,36 +295,17 @@
     searchInput.addEventListener('input', applyFilters);
     filterSelect.addEventListener('change', applyFilters);
 
-    /* ── Fetch ── */
     function fetchTransactions() {
-        transactionList.innerHTML = `
-            <div style="display:grid;gap:14px;">
-                ${Array(3).fill(`
-                    <div class="tx-card" style="opacity:.5">
-                        <div class="skeleton" style="width:40%;margin-bottom:12px"></div>
-                        <div class="skeleton" style="width:70%;margin-bottom:8px"></div>
-                        <div class="skeleton" style="width:55%"></div>
-                    </div>`).join('')}
-            </div>`;
-
         fetch('/api/admin/transactions', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include'
         })
-            .then(res => {
-                if (res.status === 403) { showToast('Not authorized.', 'error'); return []; }
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 allTransactions = data || [];
                 updateStats(allTransactions);
                 applyFilters();
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Failed to load transactions.', 'error');
-                transactionList.innerHTML = `<div class="empty-state"><div class="empty-icon">◈</div><p>Could not load data.</p></div>`;
             });
     }
 
@@ -271,24 +315,19 @@
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ transactionId: id, reason })
-        })
-            .then(res => {
-                if (res.ok) { showToast('Transaction flagged.'); fetchTransactions(); }
-                else showToast('Error flagging transaction.', 'error');
-            });
+        }).then(() => fetchTransactions());
     }
 
     function deleteTransaction(id) {
-        fetch('/api/admin/transaction/' + id, { method: 'DELETE', credentials: 'include' })
-            .then(res => {
-                if (res.ok) { showToast('Transaction deleted.'); fetchTransactions(); }
-                else showToast('Error deleting transaction.', 'error');
-            });
+        fetch('/api/admin/transaction/' + id, {
+            method: 'DELETE',
+            credentials: 'include'
+        }).then(() => fetchTransactions());
     }
 
     refreshBtn.addEventListener('click', fetchTransactions);
-
     document.addEventListener('DOMContentLoaded', fetchTransactions);
 </script>
+
 </body>
 </html>
